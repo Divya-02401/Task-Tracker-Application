@@ -15,10 +15,6 @@ def get_db_connection():
     )
     return conn
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
 @app.route('/login', methods=['POST','GET'])
 def login():
     if request.method=='POST':
@@ -29,17 +25,19 @@ def login():
             cursor=conn.cursor(dictionary=True)
             cursor.execute("select * from user where username=%s",(username,))
             user=cursor.fetchone()
-            cursor.close()
-            conn.close()
-
+           
             if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
                 session['username']=username
+                session['user_id'] = user['Sno']
                 flash('Login successful','success')
-                return redirect(url_for('user'))
+                return redirect(url_for('dashboard'))
             else:
                 flash('Invalid username or password')
         except mysql.connector.Error as err:
             flash(f'Database Error: {err}', 'danger')
+        finally:
+            cursor.close()
+            conn.close()
     return render_template('login.html')
 
 @app.route('/register',methods=['POST','GET'])
@@ -64,21 +62,65 @@ def register():
             conn.close()
     return render_template('register.html')
 
-@app.route('/user')
-def user():
-    if 'username' in session:
-        return render_template("user.html")
-    else:
-        flash("You are not logged in",'danger')
-        return redirect(url_for("login"))
-
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
+    if 'user_id' in session:
+        user_id = session['user_id']
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("SELECT * FROM task WHERE user_id=%s", (user_id,))
+            tasks = cursor.fetchall()
+            print(tasks)
+        except mysql.connector.Error as err:
+            flash(f'Database Error: {err}', 'danger')
+            tasks = []
+        finally:
+            cursor.close()
+            conn.close()
+        return render_template('dashboard.html', tasks=tasks)
+    else:
+        flash("You are not logged in", 'danger')
+        return redirect(url_for("login"))
+
+@app.route('/add-task',methods=['GET','POST'])
+def add_task():
+    if 'user_id' in session:
+        if request.method=='POST':
+            title=request.form['title']
+            description=request.form['description']
+            due_date=request.form['duedate']
+            status=request.form['status']
+            priority=request.form['priority']
+            assigned_to=request.form['assignedto']
+            user_id = session['user_id']
+            conn=get_db_connection()
+            cursor=conn.cursor()
+            try:
+                query="insert into task (title,description,due_date,status,priority,assigned_to,user_id) values(%s,%s,%s,%s,%s,%s,%s)"
+                cursor.execute(query,(title,description,due_date,status,priority,assigned_to,user_id))
+                conn.commit()
+                flash("task added successfully",'success')
+                return redirect(url_for('dashboard'))
+            except mysql.connector.Error as err:
+                flash(f'Error:{err}','danger')
+            finally:
+                cursor.close()
+                conn.close()
+                return redirect(url_for('dashboard'))  
+        else:
+            return render_template('add_task.html')
+    else:
+        flash("You are not logged in", 'danger')
+        return redirect(url_for("login"))
+
+
+
 
 @app.route('/logout')
 def logout():
-    session.pop("username",None)
+    session.pop('user_id', None)
+    session.pop('username',None)
     flash("You have been logged out", 'info')
     return redirect(url_for("login"))
 

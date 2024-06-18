@@ -26,14 +26,14 @@
     </style>
   </head>
   <body>
-    <h1>Create Account</h1>
+    <h1>Register</h1>
 
     <br />
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %} {% for category, message in messages %} {{ message }} {% endfor
     %} {% endif %} {% endwith %}
     <br />
-    <form action="" method="post" onsubmit="return validatePassword()">
+    <form method="post" onsubmit="return validatePassword()">
       <input
         type="text"
         class="form-control"
