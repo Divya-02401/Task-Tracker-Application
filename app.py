@@ -1,9 +1,12 @@
 import bcrypt
 from flask import Flask, flash, redirect, render_template, session,url_for, request
 import mysql.connector
+from flask import request, jsonify
+from flask_wtf.csrf import CSRFProtect
 
 app=Flask(__name__)
 app.secret_key='a_very_secrete_key_123456'
+csrf = CSRFProtect(app)
 
 # Database connection  
 def get_db_connection():
@@ -115,6 +118,22 @@ def add_task():
         return redirect(url_for("login"))
 
 
+@app.route('/delete-task/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    if 'user_id' in session:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DELETE FROM task WHERE id = %s AND user_id = %s", (task_id, session['user_id']))
+            conn.commit()
+            return jsonify({'message': 'Task deleted successfully'})
+        except mysql.connector.Error as err:
+            return jsonify({'error': f'Error: {err}'}), 500
+        finally:
+            cursor.close()
+            conn.close()
+    else:
+        return jsonify({'error': 'Unauthorized'}), 401
 
 
 @app.route('/logout')
