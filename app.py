@@ -1,12 +1,28 @@
+from functools import wraps
+import secrets
 import bcrypt
-from flask import Flask, flash, redirect, render_template, session,url_for, request
+from flask import Flask, abort, flash, redirect, render_template, session,url_for, request
 import mysql.connector
 from flask import request, jsonify
 from flask_wtf.csrf import CSRFProtect
 
 app=Flask(__name__)
 app.secret_key='a_very_secrete_key_123456'
-csrf = CSRFProtect(app)
+
+# CSRF protection setup
+@app.before_request
+def csrf_protect():
+    if request.method == 'POST':
+        csrf_token = session.pop('_csrf_token', None)
+        if not csrf_token or csrf_token != request.form.get('csrf_token'):
+            abort(403)
+
+# Function to generate CSRF token
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(16)
+    return session['_csrf_token']
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
 # Database connection  
 def get_db_connection():
@@ -18,9 +34,22 @@ def get_db_connection():
     )
     return conn
 
+# Function to check if user is logged in and is admin
+def login_required_admin(func):
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        if 'type' not in session or session['type'] != 'admin':
+            flash('You must be an admin to view this page', 'danger')
+            return redirect(url_for('login'))
+        return func(*args, **kwargs)
+    return decorated_function
+
 @app.route('/login', methods=['POST','GET'])
 def login():
     if request.method=='POST':
+        # csrf_token = session.pop('_csrf_token', None)
+        # if not csrf_token or csrf_token != request.form.get('csrf_token'):
+        #     abort(403)
         username=request.form['username']
         password=request.form['password']
         try:
@@ -32,8 +61,12 @@ def login():
             if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
                 session['username']=username
                 session['user_id'] = user['Sno']
+                session['type']=user['type']
                 flash('Login successful','success')
-                return redirect(url_for('dashboard'))
+                if user['type'] == 'admin':  # Assuming 'type' column specifies user type
+                    return redirect(url_for('task_details'))
+                else:
+                    return redirect(url_for('dashboard'))
             else:
                 flash('Invalid username or password')
         except mysql.connector.Error as err:
@@ -46,6 +79,9 @@ def login():
 @app.route('/register',methods=['POST','GET'])
 def register():
     if request.method=='POST':
+        csrf_token = session.pop('_csrf_token', None)
+        if not csrf_token or csrf_token != request.form.get('csrf_token'):
+            abort(403)
         username=request.form['username']
         password=request.form['password']
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -136,10 +172,31 @@ def delete_task(task_id):
         return jsonify({'error': 'Unauthorized'}), 401
 
 
+
+@app.route('/task-details',methods=['GET','POST'])
+@login_required_admin
+def task_details():
+    try:      
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("select * from task")
+        task=cursor.fetchall()
+        print(task)
+        return render_template('tasks.html',task=task)
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+    return redirect(url_for('login')) 
+
+    
+
 @app.route('/logout')
 def logout():
     session.pop('user_id', None)
     session.pop('username',None)
+    session.pop('type', None)
     flash("You have been logged out", 'info')
     return redirect(url_for("login"))
 

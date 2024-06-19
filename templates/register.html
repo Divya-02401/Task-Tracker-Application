@@ -34,6 +34,8 @@
     %} {% endif %} {% endwith %}
     <br />
     <form method="post" onsubmit="return validatePassword()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
       <input
         type="text"
         class="form-control"

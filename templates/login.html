@@ -27,6 +27,8 @@
     %} {% endif %} {% endwith %}
     <br />
     <form action="" method="post">
+      <input type="hidden" name="csrf_token" value = "{{ csrf_token() }}" />  
+
       <input
         type="text"
         placeholder="Username"
