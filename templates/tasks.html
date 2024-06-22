@@ -29,11 +29,10 @@
           <th>Due Date</th>
           <th>Priority</th>
           <th>Assigned To</th>
-          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        {% for task in task %}
+        {% for task in tasks %}
         <tr>
           <td>{{ task.id}}</td>
           <td>{{ task.title }}</td>

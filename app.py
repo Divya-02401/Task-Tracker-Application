@@ -1,4 +1,5 @@
 from functools import wraps
+from http.client import HTTPException
 import secrets
 import bcrypt
 from flask import Flask, abort, flash, redirect, render_template, session,url_for, request
@@ -47,9 +48,6 @@ def login_required_admin(func):
 @app.route('/login', methods=['POST','GET'])
 def login():
     if request.method=='POST':
-        # csrf_token = session.pop('_csrf_token', None)
-        # if not csrf_token or csrf_token != request.form.get('csrf_token'):
-        #     abort(403)
         username=request.form['username']
         password=request.form['password']
         try:
@@ -156,7 +154,7 @@ def add_task():
 
 @app.route('/delete-task/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
-    if 'user_id' in session:
+    if 'user_id' in session:        
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
@@ -180,9 +178,9 @@ def task_details():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("select * from task")
-        task=cursor.fetchall()
-        print(task)
-        return render_template('tasks.html',task=task)
+        tasks=cursor.fetchall()
+        print(tasks)
+        return render_template('tasks.html',tasks=tasks)
     except Exception as e:
         print(e)
     finally:
@@ -190,7 +188,7 @@ def task_details():
         conn.close()
     return redirect(url_for('login')) 
 
-    
+   
 
 @app.route('/logout')
 def logout():
