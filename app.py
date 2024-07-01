@@ -188,6 +188,50 @@ def task_details():
         conn.close()
     return redirect(url_for('login')) 
 
+@app.route('/get-task/<int:task_id>', methods=['GET'])
+def get_task(task_id):
+    if 'user_id' in session:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("SELECT * FROM task WHERE id = %s AND user_id = %s", (task_id, session['user_id']))
+            task = cursor.fetchone()
+            if task:
+                return jsonify(task)
+            else:
+                return jsonify({'error': 'Task not found'}), 404
+        except mysql.connector.Error as err:
+            return jsonify({'error': f'Error: {err}'}), 500
+        finally:
+            cursor.close()
+            conn.close()
+    else:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+
+@app.route('/edit-task/<int:task_id>', methods=['PUT'])
+def edit_task(task_id):
+    if 'user_id' in session:
+        data = request.json
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            query = """
+                UPDATE task
+                SET title = %s, description = %s, due_date = %s, status = %s, priority = %s, assigned_to = %s
+                WHERE id = %s AND user_id = %s
+            """
+            cursor.execute(query, (data['title'], data['description'], data['due_date'], data['status'], data['priority'], data['assigned_to'], task_id, session['user_id']))
+            conn.commit()
+            return jsonify({'message': 'Task updated successfully'})
+        except mysql.connector.Error as err:
+            return jsonify({'error': f'Error: {err}'}), 500
+        finally:
+            cursor.close()
+            conn.close()
+    else:
+        return jsonify({'error': 'Unauthorized'}), 401
+
    
 
 @app.route('/logout')

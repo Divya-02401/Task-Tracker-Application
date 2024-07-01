@@ -40,7 +40,7 @@
         />
         <br />
         <input
-          type="text"
+          type="date"
           class="form-control"
           placeholder="Enter due date"
           aria-label="Enter  due date"
@@ -49,25 +49,23 @@
           required
         />
         <br />
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Enter status"
-          aria-label="Enter status"
-          aria-describedby="basic-addon1"
-          name="status"
-          required
-        />
+
+        <select class="form-select" id="editTaskStatus" name="status" required>
+          <option value="Not Started">Not Started</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
         <br />
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Enter priority"
-          aria-label="Enter priority"
-          aria-describedby="basic-addon1"
+        <select
+          class="form-select"
+          id="editTaskPriority"
           name="priority"
           required
-        />
+        >
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
 
         <br />
         <input
@@ -83,9 +81,10 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
           Close
-        </button>
+        </button> -->
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Close</a>
         <button type="submit" class="btn btn-primary">Submit</button>
       </div>
     </form>

@@ -51,7 +51,7 @@
           <td>{{ task.priority }}</td>
           <td>{{ task.assigned_to }}</td>
           <td>
-            <a href="#">
+            <a href="#" onclick="editTask('{{ task.id }}')">
               <i class="fas fa-edit"></i>
             </a>
             &nbsp;
@@ -63,6 +63,107 @@
         {% endfor %}
       </tbody>
     </table>
+    <!-- Edit Task Modal -->
+    <div
+      class="modal fade"
+      id="editTaskModal"
+      tabindex="-1"
+      aria-labelledby="editTaskModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editTaskModalLabel">Edit Task</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="editTaskForm">
+              <input type="hidden" id="editTaskId" name="id" />
+              <div class="mb-3">
+                <label for="editTaskTitle" class="form-label">Title</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="editTaskTitle"
+                  name="title"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="editTaskDescription" class="form-label"
+                  >Description</label
+                >
+                <textarea
+                  class="form-control"
+                  id="editTaskDescription"
+                  name="description"
+                  required
+                ></textarea>
+              </div>
+              <div class="mb-3">
+                <label for="editTaskStatus" class="form-label">Status</label>
+                <select
+                  class="form-select"
+                  id="editTaskStatus"
+                  name="status"
+                  required
+                >
+                  <option value="Not Started">Not Started</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editTaskDueDate" class="form-label">Due Date</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="editTaskDueDate"
+                  name="due_date"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="editTaskPriority" class="form-label"
+                  >Priority</label
+                >
+                <select
+                  class="form-select"
+                  id="editTaskPriority"
+                  name="priority"
+                  required
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editTaskAssignedTo" class="form-label"
+                  >Assigned To</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="editTaskAssignedTo"
+                  name="assigned_to"
+                  required
+                />
+              </div>
+              <button type="submit" class="btn btn-primary">
+                Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
     <script>
       function deleteTask(taskId) {
         if (confirm("Are you sure you want to delete this task?")) {
@@ -91,6 +192,66 @@
             });
         }
       }
+      function editTask(taskId) {
+        // Fetch the task details using taskId
+        fetch(`/get-task/${taskId}`)
+          .then((response) => response.json())
+          .then((task) => {
+            // Fill the form with the task details
+            document.getElementById("editTaskId").value = task.id;
+            document.getElementById("editTaskTitle").value = task.title;
+            document.getElementById("editTaskDescription").value =
+              task.description;
+            document.getElementById("editTaskStatus").value = task.status;
+            document.getElementById("editTaskDueDate").value = task.due_date;
+            document.getElementById("editTaskPriority").value = task.priority;
+            document.getElementById("editTaskAssignedTo").value =
+              task.assigned_to;
+
+            // Show the modal
+            var editTaskModal = new bootstrap.Modal(
+              document.getElementById("editTaskModal")
+            );
+            editTaskModal.show();
+          })
+          .catch((error) =>
+            console.error("Error fetching task details:", error)
+          );
+      }
+
+      document
+        .getElementById("editTaskForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          // Get the form data
+          const formData = new FormData(this);
+          const taskId = document.getElementById("editTaskId").value;
+
+          // Send the updated task details to the server
+          fetch(`/edit-task/${taskId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token() }}",
+            },
+            body: JSON.stringify(Object.fromEntries(formData.entries())),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              alert(data.message);
+              window.location.reload();
+            })
+            .catch((error) => {
+              console.error("Error updating task:", error);
+              alert("Error updating task");
+            });
+        });
     </script>
   </body>
 </html>
