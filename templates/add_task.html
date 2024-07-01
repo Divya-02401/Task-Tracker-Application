@@ -17,7 +17,7 @@
   <body>
     <h2>Add Task</h2>
     <form method="post" action="/add-task">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
       <div class="modal-body">
         <input
           type="text"

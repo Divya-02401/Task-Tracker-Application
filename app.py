@@ -15,15 +15,22 @@ app.secret_key='a_very_secrete_key_123456'
 def csrf_protect():
     if request.method == 'POST':
         csrf_token = session.pop('_csrf_token', None)
-        if not csrf_token or csrf_token != request.form.get('csrf_token'):
+        form_token = request.form.get('csrf_token')
+        print(f"Session token: {csrf_token}, Form token: {form_token}")  # Debugging line
+        if not csrf_token or csrf_token != form_token:
             abort(403)
-
+        
 # Function to generate CSRF token
 def generate_csrf_token():
     if '_csrf_token' not in session:
         session['_csrf_token'] = secrets.token_hex(16)
     return session['_csrf_token']
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
+
+# Add CSRF token to all rendered templates
+@app.context_processor
+def inject_csrf_token():
+    return {'csrf_token': generate_csrf_token()}
 
 # Database connection  
 def get_db_connection():
@@ -78,7 +85,7 @@ def login():
 def register():
     if request.method=='POST':
         csrf_token = session.pop('_csrf_token', None)
-        if not csrf_token or csrf_token != request.form.get('csrf_token'):
+        if csrf_token != session.get('_csrf_token'):
             abort(403)
         username=request.form['username']
         password=request.form['password']
