@@ -171,7 +171,7 @@
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
-              "X-CSRFToken": "{{ csrf_token() }}", // Ensure to include CSRF token if using Flask-WTF CSRF protection
+              "X-CSRFToken": "{{ csrf_token }}", // Ensure to include CSRF token if using Flask-WTF CSRF protection
             },
           })
             .then((response) => {
@@ -233,7 +233,7 @@
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              "X-CSRFToken": "{{ csrf_token() }}",
+              "X-CSRFToken": "{{ csrf_token }}",
             },
             body: JSON.stringify(Object.fromEntries(formData.entries())),
           })

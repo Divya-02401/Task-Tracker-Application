@@ -19,6 +19,8 @@
     <form method="post" action="/add-task">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
       <div class="modal-body">
+        <label for="editTaskTitle" class="form-label">Title</label>
+
         <input
           type="text"
           class="form-control"
@@ -28,7 +30,9 @@
           name="title"
           required
         />
+
         <br />
+        <label for="editTaskDescription" class="form-label">Description</label>
         <input
           type="text"
           class="form-control"
@@ -39,6 +43,8 @@
           required
         />
         <br />
+        <label for="editTaskDueDate" class="form-label">Due Date</label>
+
         <input
           type="date"
           class="form-control"
@@ -49,6 +55,7 @@
           required
         />
         <br />
+        <label for="editTaskStatus" class="form-label">Status</label>
 
         <select class="form-select" id="editTaskStatus" name="status" required>
           <option value="Not Started">Not Started</option>
@@ -56,6 +63,7 @@
           <option value="Completed">Completed</option>
         </select>
         <br />
+        <label for="editTaskPriority" class="form-label">Priority</label>
         <select
           class="form-select"
           id="editTaskPriority"
@@ -68,6 +76,7 @@
         </select>
 
         <br />
+        <label for="editTaskAssignedTo" class="form-label">Assigned To</label>
         <input
           type="text"
           class="form-control"
