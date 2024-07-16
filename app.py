@@ -110,6 +110,7 @@ def register():
 def dashboard():
     if 'user_id' in session:
         user_id = session['user_id']
+        username=session['username']
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         try:
@@ -122,7 +123,7 @@ def dashboard():
         finally:
             cursor.close()
             conn.close()
-        return render_template('dashboard.html', tasks=tasks)
+        return render_template('dashboard.html', tasks=tasks,username=username)
     else:
         flash("You are not logged in", 'danger')
         return redirect(url_for("login"))
@@ -138,11 +139,12 @@ def add_task():
             priority=request.form['priority']
             assigned_to=request.form['assignedto']
             user_id = session['user_id']
+            category = request.form['category']
             conn=get_db_connection()
             cursor=conn.cursor()
             try:
-                query="insert into task (title,description,due_date,status,priority,assigned_to,user_id) values(%s,%s,%s,%s,%s,%s,%s)"
-                cursor.execute(query,(title,description,due_date,status,priority,assigned_to,user_id))
+                query="insert into task (title,description,due_date,status,priority,assigned_to,user_id,category) values(%s,%s,%s,%s,%s,%s,%s,%s)"
+                cursor.execute(query,(title,description,due_date,status,priority,assigned_to,user_id,category))
                 conn.commit()
                 flash("task added successfully",'success')
                 return redirect(url_for('dashboard'))
@@ -225,10 +227,10 @@ def edit_task(task_id):
         try:
             query = """
                 UPDATE task
-                SET title = %s, description = %s, due_date = %s, status = %s, priority = %s, assigned_to = %s
+                SET title = %s, description = %s, due_date = %s, status = %s, priority = %s, assigned_to = %s,category=%s
                 WHERE id = %s AND user_id = %s
             """
-            cursor.execute(query, (data['title'], data['description'], data['due_date'], data['status'], data['priority'], data['assigned_to'], task_id, session['user_id']))
+            cursor.execute(query, (data['title'], data['description'], data['due_date'], data['status'], data['priority'], data['assigned_to'],data['category'], task_id, session['user_id']))
             conn.commit()
             return jsonify({'message': 'Task updated successfully'})
         except mysql.connector.Error as err:

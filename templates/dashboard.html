@@ -41,6 +41,8 @@
   </head>
   <body>
     <h1>Dasboard</h1>
+    <br />
+    <h1>Hello, {{ username }}!</h1>
     <a href="{{ url_for('add_task') }}" class="btn btn-primary my-3"
       ><i class="fas fa-plus"></i> Add Task</a
     >
@@ -58,6 +60,7 @@
           <th>Due Date</th>
           <th>Priority</th>
           <th>Assigned To</th>
+          <th>category</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -71,6 +74,7 @@
           <td>{{ task.due_date }}</td>
           <td>{{ task.priority }}</td>
           <td>{{ task.assigned_to }}</td>
+          <td>{{ task.category }}</td>
           <td>
             <a href="#" onclick="editTask('{{ task.id }}')">
               <i class="fas fa-edit"></i>
@@ -177,6 +181,20 @@
                   required
                 />
               </div>
+              <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
+                <select
+                  class="form-select"
+                  id="category"
+                  name="category"
+                  required
+                >
+                  <option value="work">Work</option>
+                  <option value="personal">Personal</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              <br />
               <button type="submit" class="btn btn-primary">
                 Save Changes
               </button>
@@ -228,6 +246,7 @@
             document.getElementById("editTaskPriority").value = task.priority;
             document.getElementById("editTaskAssignedTo").value =
               task.assigned_to;
+            document.getElementById("category").value = task.category;
 
             // Show the modal
             var editTaskModal = new bootstrap.Modal(
